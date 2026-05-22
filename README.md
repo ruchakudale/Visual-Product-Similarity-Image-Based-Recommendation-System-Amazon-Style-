@@ -78,6 +78,8 @@ Top-K Similar Product Retrieval
       ↓
 Streamlit Web Application
 ```
+---
+![alt text](Architecture_Diagram.png)
 
 ---
 
