@@ -5,7 +5,7 @@ import pickle
 import numpy as np
 from PIL import Image
 from torchvision import transforms
-
+from pathlib import Path
 from config import FAISS_INDEX_DIR, EMBEDDING_DIR, IMAGE_SIZE, DEVICE
 from model import ResNetFeatureExtractor
 
@@ -16,9 +16,30 @@ from model import ResNetFeatureExtractor
 print("Loading FAISS index...")
 index = faiss.read_index(os.path.join(FAISS_INDEX_DIR, "product_index.faiss"))
 
-print("Loading image paths...")
-with open(os.path.join(EMBEDDING_DIR, "image_paths.pkl"), "rb") as f:
-    image_paths = pickle.load(f)
+
+
+# Project root: parent of the src folder
+BASE_DIR = Path(__file__).resolve().parent.parent
+IMAGE_DIR = BASE_DIR / "data" / "images"
+PATHS_PATH = BASE_DIR / "data" / "embeddings" / "image_paths.pkl"
+
+with open(PATHS_PATH, "rb") as file:
+    saved_paths = pickle.load(file)
+
+# Rebuild paths using the current computer's project directory
+image_paths = [
+    str(IMAGE_DIR / Path(str(path).replace("\\", "/")).name)
+    for path in saved_paths
+]
+
+# Check that the images exist
+missing = [path for path in image_paths if not Path(path).is_file()]
+
+if missing:
+    raise FileNotFoundError(
+        f"{len(missing)} product images could not be found. "
+        f"Example missing path: {missing[0]}"
+    )
 
 print("Loading feature extractor...")
 model = ResNetFeatureExtractor()
